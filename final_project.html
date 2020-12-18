@@ -34,5 +34,605 @@
    and guide my bitmoji out?
   </p>
   
+  <script>
+   var currentScene; //creating current scene as a global variable
+
+//drawing my bitmoji's parts
+var drawHead = function (bodyX,bodyY, bodyH){
+    //face
+    fill (240, 226, 209);
+    ellipse (bodyX+(bodyH/100*0), bodyY+(bodyH/100*0), bodyH/100*110, bodyH/100*155);      //head
+
+    //eyeballs
+    fill (250, 247, 247);
+    ellipse (bodyX-(bodyH/100*25), bodyY-(bodyH/100*30), bodyH/100*32, bodyH/100*16);      //eye on left side of screen
+    ellipse (bodyX+(bodyH/100*25), bodyY-(bodyH/100*30), bodyH/100*32, bodyH/100*16);      //eye on right side of screen
+
+    //iris
+    fill(92, 5, 5);
+    ellipse (bodyX-(bodyH/100*25), bodyY-(bodyH/100*30), bodyH/100*15, bodyH/100*15);      //left pupil
+    ellipse (bodyX+(bodyH/100*25), bodyY-(bodyH/100*30), bodyH/100*15, bodyH/100*15);      //right pupil
+
+    //pupils
+    fill (3, 3, 3);
+    ellipse (bodyX-(bodyH/100*25), bodyY-(bodyH/100*30), bodyH/100*8, bodyH/100*8);
+    ellipse (bodyX+(bodyH/100*25), bodyY-(bodyH/100*30), bodyH/100*8, bodyH/100*8);
+
+    //nose
+    fill(227, 198, 198);
+    triangle (bodyX+(bodyH/100*15), bodyY+(bodyH/100*27), bodyX-(bodyH/100*8), bodyY+(bodyH/100*27), bodyX+(bodyH/100*1), bodyY-(bodyH/100*16));//nose
+
+    //mouth
+    fill (247, 163, 163);
+    arc (bodyX+(bodyH/100*0), bodyY+(bodyH/100*43), bodyH/100*54, bodyH/100*34, 0, 180    );// mouth
+};
+
+var drawExtras = function (bodyX, bodyY, bodyH){
+    //top
+    fill (189, 189, 189);
+    arc (bodyX+(bodyH/100*0), bodyY+(bodyH/100*117), bodyH/100*174, bodyH/100*(-76), 0, 180);//sweatshirt
+   
+    //text
+    fill (10, 10, 10);
+    textSize (20);
+    text ("S.H.", bodyX-(bodyH/100*16),bodyY+(bodyH/100*95),bodyH/100*40,bodyH/100*40);
+
+    //hair
+    fill(43, 36, 36);
+    rect (bodyX-(bodyH/100*55), bodyY-(bodyH/100*58), bodyH/100*21, bodyH/100*227);        //hair
+    rect (bodyX+(bodyH/100*42), bodyY-(bodyH/100*58), bodyH/100*27, bodyH/100*227   );     //hair
+
+    //hat
+    fill(37, 112, 57);
+    arc (bodyX+(bodyH/100*8), bodyY-(bodyH/100*54), bodyH/100*125,bodyH/100*(-90), 0, 180);//hat
+    
+    //brim
+    fill (49, 77, 44);
+    arc (bodyX+(bodyH/100*6), bodyY-(bodyH/100*51), bodyH/100*76, bodyH/100*(-60), 0, 180);//brim
+};
+// putting together my bitmoji's parts into the full icon
+var drawSuraiya = function (bodyX, bodyY, bodyH){
+    drawHead (bodyX,bodyY,bodyH);
+    drawExtras (bodyX,bodyY,bodyH);
+};
+
+//Khan button class
+var Button = function(config) {
+    this.x = config.x || 0;
+    this.y = config.y || 0;
+    this.width = config.width || 0;
+    this.height = config.height || 0;
+    this.label = config.label || "Label";
+    this.backgroundColor = config.color;
+};
+
+Button.prototype.changeColor = function (newColor){
+    this.backgroundColor = newColor;
+};
+
+Button.prototype.draw = function() {
+    fill(this.backgroundColor);
+    rect(this.x, this.y, this.width, this.height, 5);
+    fill(0, 0, 0);
+    textSize(110);
+    textAlign(CENTER, TOP);
+    text(this.label, this.x+56, this.y+this.height/120);
+};
+
+//Buttons for each maze
+//button for maze 1
+var btnMaze1 = new Button({
+    color: color(222, 221, 235),
+    x: 19,
+    y: 174,
+    width: 103,
+    height: 119,
+    label:"1",
+});
+//button for maze 2
+var btnMaze2 = new Button({
+    color: color(222, 221, 235),
+    x: 147,
+    y: 174,
+    width: 103,
+    height: 119,
+    label: "2",
+});
+//button for maze 3
+var btnMaze3 = new Button({
+    color: color(222, 221, 235),
+    x: 274,
+    y: 174,
+    width: 103,
+    height: 119,
+    label: "3",
+});
+
+//button for dragged cursor color, primary colors
+var btnRed = new Button({
+    color: color(255, 0, 0),//red, I'm going for primary colors
+    x: 21,
+    y: 39,
+    width: 103,
+    height: 17,
+    label: " ",
+});
+
+var btnYellow = new Button({
+    color: color(255, 255, 0),//yellow
+    x: 156,
+    y: 39,
+    width: 103,
+    height: 17,
+    label: " ",
+});
+
+var btnBlue = new Button({
+    color: color(0, 0, 255),//blue
+    x: 284,
+    y: 39,
+    width: 103,
+    height: 17,
+    label: " ",
+});
+
+var btnHome = new Button ({
+    color: color(24, 41, 40),
+    x: 329,
+    y: 10,
+    width: 65,
+    height: 20,
+    label: " ",
+});
+
+var Solved = function (){
+    fill(255, 255, 255);
+    rect(30, 48, 337, 100);
+    
+    fill(255, 0, 0);
+    textSize (70);
+    text("SOLVED!", 200, 61);
+};
+
+//putting together start screen
+var startScreen = function (){
+    currentScene = 0;
+    
+    background (226, 252, 233); // a pastel mint green, I guess I am switching things up from purple lol
+    
+    //game title
+    textAlign(CENTER);
+    textSize (60);
+    fill(148, 140, 255);//periwinkle blue
+    text("Maze Runner", 201, 52);
+    
+    //description
+    textAlign(RIGHT);
+    textSize(25);
+    text("Select a maze to solve!", 324, 89);
+    textSize(20);
+    text("Use your mouse to select your pen", 343, 119);
+    text("color, and solve!", 181, 143);
+    
+    //challenge
+    text("Can you lead me out of each maze?", 395, 364);
+    line(63,389,77,365);
+    drawSuraiya (36,359,36); //drawing ME!
+    
+    //buttons to select maze
+    btnMaze1.draw();
+    btnMaze2.draw();
+    btnMaze3.draw();
+};
+
+//creating maze 1
+var maze1screen = function(){
+    currentScene = 1;
+    background(58, 133, 78);
+    
+//creating nested for loop for hedge maze   
+    for (var j = 0; j < 16; j++) {
+    for (var i = 0; i < 13; i++) {
+        image(getImage("cute/TreeUgly"), i*38, j*24, 40, 62);
+    }
+}
+    
+    //describes the maze
+    fill(0, 0, 0);
+    rect(0,0,400,49);
+    rect(0, 346, 400, 78);
+    fill(229, 244, 255);// idk I am just feeling the blue rather than plain white
+    textAlign(LEFT);
+    textSize(20);
+    text("Can you solve this hedge maze?",7,30);
+    
+    //directions
+    textSize(15);
+    text("Follwing the grey, path can you help me find my way out of",2,364);
+    text("the maze? Select a color, then drag your mouse along the ", 2, 380);
+    text("route to solve the maze.", 2, 395);
+    
+    //start of maze
+    noStroke();
+    fill(98, 109, 112);
+    rect(147, 183, 105, 30);
+    
+    fill(229, 244, 255);
+    textSize(21); 
+    text("START", 167, 205);
+    
+    //bitmoji
+    drawSuraiya(255,190,22);
+   
+    //creating maze
+    fill(98, 109, 112);
+    rect(122, 183, 30, 85);//vertical
+    rect(122, 254, 166, 30);//horizontal
+    rect(187, 211, 30, 72);
+    rect(235, 262, 30, 72);
+    rect(288, 145, 30, 139);
+    rect(301, 216, 60, 30);
+    rect(352, 216, 30, 103);
+    rect(152, 116, 166, 30);
+    rect(314, 143, 60, 30);
+    rect(357, 66, 30, 107);
+    rect(33, 63, 353, 30);
+    rect(81, 78, 30, 85);
+    rect(19, 63, 30, 266);
+    rect(19, 306, 158, 30);
+    rect(170, 306, 30, 40);
+    rect(71, 228, 30, 85);
+    rect(29, 200, 72, 30);
+    
+    //end of maze
+    fill(229, 244, 255);
+    textSize (11);
+    text("END", 174, 344);
+    
+    //buttons for dragged cursor color
+    btnRed.draw ();
+    btnYellow.draw ();
+    btnBlue.draw ();
+    btnHome.draw();
+    
+    //butting text on home button
+    textSize(15);
+    fill(199, 216, 255);
+    text("BACK", 362, 11);
+};
+
+//creating maze 2
+var maze2screen = function(){
+    currentScene = 2;
+    
+//creating nested for loop with khan image for labrynth background   
+    for (var j = 0; j < 16; j++) {
+    for (var i = 0; i < 13; i++) {
+        image(getImage("cute/StoneBlock"), i*37, j*24, 40, 62);
+    }
+}
+    
+    //describes the maze
+    fill(0, 0, 0);
+    rect(0,0,400,49);
+    rect(0, 346, 400, 78);
+    fill(229, 244, 255);// idk I am just feeling the blue
+    textAlign(LEFT);
+    textSize(20);
+    text("Can you solve this labrynth maze?",7,30);// minataur/percy jackson-esque
+    
+    //directions
+    textSize(15);
+    text("Follwing the grey, path can you help me find my way out of",2,364);
+    text("the maze? Select a color, then drag your mouse along the ", 2, 380);
+    text("route to solve the maze.", 2, 395);
+    
+    //start of maze
+    noStroke();
+    fill(98, 109, 112);
+    rect(147, 183, 105, 30);
+    
+    fill(229, 244, 255);
+    textSize(21); 
+    text("START", 167, 205);
+    
+    //bitmoji
+    drawSuraiya(250,190,22);
+   
+    //creating maze
+    fill(98, 109, 112);
+    rect(182, 119, 30, 64);//vertical
+    rect(170, 312, 30, 34);
+    rect(182, 90, 206, 30);//horizontal
+    rect(358, 119, 30, 102);
+    rect(295, 221, 93, 30);
+    rect(274, 163, 30, 88);
+    rect(274, 143, 56, 30);
+    rect(274, 235, 30, 39);
+    rect(211, 264, 93, 30);
+    rect(182, 230, 30, 64);
+    rect(238, 274, 30, 66);
+    rect(238, 310, 135, 30);
+    rect(357, 276, 30, 64);
+    rect(331, 264, 56, 30);
+    rect(170, 290, 30, 23);
+    rect(134, 263, 49, 30);
+    rect(104, 263, 30, 68);
+    rect(31, 308, 103, 30);
+    rect(18, 246, 30, 92);
+    rect(68, 66, 144, 30);
+    rect(38, 66, 30, 106);
+    rect(66, 142, 61, 30);
+    rect(125, 119, 30, 53);
+    rect(80, 172, 30, 53);
+    rect(18, 217, 92, 30);
+
+    
+    //end of maze
+    fill(229, 244, 255);
+    textSize (11);
+    text("END", 174, 344);
+    
+    //buttons for dragged cursor color
+    btnRed.draw ();
+    btnYellow.draw ();
+    btnBlue.draw ();
+    btnHome.draw();
+    
+    //butting text on home button
+    textSize(15);
+    fill(199, 216, 255);
+    text("BACK", 362, 11);
+};
+
+//creating maze 3
+var maze3screen = function(){
+    currentScene = 3;
+    background(132, 184, 68);
+    
+//creating nested for loop with khan image for corn maze as background
+    for (var j = 0; j < 16; j++) {
+    for (var i = 0; i < 13; i++) {
+        image(getImage("avatars/leaf-yellow"), i*38, j*24, 40, 62);// I used the yellow leaf, I thought it lookeed most corn-like
+    }
+}
+    
+    //describes the maze
+    fill(0, 0, 0);
+    rect(0,0,400,49);
+    rect(0, 346, 400, 78);
+    fill(229, 244, 255);// idk I am just feeling the blue
+    textAlign(LEFT);
+    textSize(20);
+    text("Can you solve this corn maze?",7,30);// minataur/percy jackson-esque
+    
+    //directions
+    textSize(15);
+    text("Follwing the grey, path can you help me find my way out of",2,364);
+    text("the maze? Select a color, then drag your mouse along the ", 2, 380);
+    text("route to solve the maze.", 2, 395);
+    
+    //start of maze
+    noStroke();
+    fill(98, 109, 112);
+    rect(147, 183, 105, 30);
+    
+    fill(229, 244, 255);
+    textSize(21); 
+    text("START", 167, 205);
+    
+    //bitmoji
+    drawSuraiya(256,192,22);
+   
+    
+    //creating maze
+    
+    fill(98, 109, 112);
+    rect(122, 183, 30, 85);//vertical
+    rect(122, 254, 166, 30);//horizontal
+    rect(187, 211, 30, 72);
+    rect(235, 262, 30, 72);
+    rect(288, 145, 30, 139);
+    rect(301, 216, 60, 30);
+    rect(352, 216, 30, 103);
+    rect(152, 116, 166, 30);
+    rect(314, 143, 60, 30);
+    rect(357, 66, 30, 107);
+    rect(33, 63, 353, 30);
+    rect(81, 78, 30, 85);
+    rect(19, 63, 30, 266);
+    rect(19, 306, 158, 30);
+    rect(170, 306, 30, 40);
+    rect(71, 228, 30, 85);
+    rect(29, 200, 72, 30);
+    rect(236, 305, 146, 30);
+    rect(352, 153, 30, 85);
+    rect(152, 146, 30, 39);
+    rect(44, 160, 67, 30);
+    rect(152, 73, 30, 45);
+    
+    //end of maze
+    fill(229, 244, 255);
+    textSize (11);
+    text("END", 174, 344);
+    
+    //buttons for dragged cursor color
+    btnRed.draw ();
+    btnYellow.draw ();
+    btnBlue.draw ();
+    btnHome.draw();
+    
+    //butting text on home button
+    textSize(15);
+    fill(199, 216, 255);
+    text("BACK", 362, 11);
+};
+
+ startScreen();
+
+//using buttons to call maze scenes
+mouseClicked = function (){
+//if btnMaze1 is clicked, it brings up maze 1 (hedge)
+    if (currentScene === 0 && mouseX <= 120 && mouseX >= 15 && mouseY <= 300 && mouseY >= 175)
+     {
+      maze1screen();
+     }
+    
+// if btnMaze2 is clicked, it brings up maze 2 (labrynth)
+    if (currentScene === 0 && mouseX <= 250 && mouseX >= 140 && mouseY <= 290 && mouseY >= 175)
+        {
+            maze2screen();
+        }
+        
+// if btnMaze3 is clicked maze 3 is brought up (corn)
+    if (currentScene === 0 && mouseX <= 350 && mouseX >= 260 && mouseY <= 290 && mouseY >= 175)
+        {
+            maze3screen();
+        }
+
+//buttons to call cursor color and make it appear when mouse is dragged in each maze
+//RED!!!!
+//red in maze 1
+    if (currentScene === 1 && mouseX <= 125 && mouseX >= 10 && mouseY <= 55 && mouseY     >= 35){
+       mouseDragged = function(){
+           if (mouseY >= 50 && mouseY <= 345){
+                fill(255, 0, 0);//red
+                ellipse(mouseX, mouseY, 10, 10);
+           }
+           if (mouseY >350){
+               Solved();
+           }
+       };
+    }
+// red in maze 2
+    if (currentScene === 2 && mouseX <= 150 && mouseX >= 10 && mouseY <= 55 && mouseY     >= 35){
+       mouseDragged = function(){
+           if (mouseY >= 50 && mouseY <= 345){
+                fill(255, 0, 0);//red
+                ellipse(mouseX, mouseY, 10, 10);
+           }
+       };
+    }
+//red in maze 3
+    if (currentScene === 3 && mouseX <= 150 && mouseX >= 10 && mouseY <= 55 && mouseY     >= 35){
+       mouseDragged = function(){
+           if (mouseY >= 50 && mouseY <= 345){
+                fill(255, 0, 0);//red
+                ellipse(mouseX, mouseY, 10, 10);
+           }
+           if (mouseY >350){
+               Solved();
+           }
+       };
+    }
+
+//YELLOW!!!
+//maze 1
+    if (currentScene === 1 && mouseX <=260 && mouseX >= 115 && mouseY <= 55 && mouseY >= 35)
+    {
+       mouseDragged = function(){
+           if (mouseY >= 50 && mouseY <= 345){
+                fill(255, 255, 0);//yellow
+                ellipse(mouseX, mouseY, 10, 10);
+           }
+           if (mouseY >350){
+               Solved();
+           }
+       };  
+    }
+
+//maze 2
+    if (currentScene === 2 && mouseX <=260 && mouseX >= 115 && mouseY <= 55 && mouseY >= 35)
+    {
+       mouseDragged = function(){
+           if (mouseY >= 50 && mouseY <= 345){
+                fill(255, 255, 0);//yellow
+                ellipse(mouseX, mouseY, 10, 10);
+           }
+           if (mouseY >350){
+               Solved();
+           }
+       };  
+    }
+
+// maze 3
+    if (currentScene === 3 && mouseX <=260 && mouseX >= 115 && mouseY <= 55 && mouseY >= 35)
+    {
+       mouseDragged = function(){
+           if (mouseY >= 50 && mouseY <= 345){
+                fill(255, 255, 0);//yellow
+                ellipse(mouseX, mouseY, 10, 10);
+           }
+           if (mouseY >350){
+               Solved();
+           }
+       };  
+    }
+
+//BLUE!!
+//maze 1
+     if (currentScene === 1 && mouseX <=390 && mouseX >= 275 && mouseY <= 55 && mouseY >= 35)
+    {
+       mouseDragged = function(){
+           if (mouseY >= 50 && mouseY <= 345){
+                fill(0, 0, 255);//blue
+                ellipse(mouseX, mouseY, 10, 10);
+           }
+           if (mouseY >350){
+               Solved();
+           }
+       };  
+    }
+    
+//maze 2
+    if (currentScene === 2 && mouseX <=390 && mouseX >= 275 && mouseY <= 55 && mouseY >= 35)
+    {
+       mouseDragged = function(){
+           if (mouseY >= 50 && mouseY <= 345){
+                fill(0, 0, 255);//blue
+                ellipse(mouseX, mouseY, 10, 10);
+           }
+           if (mouseY >350){
+               Solved();
+           }
+       };  
+    }
+    
+//maze 3
+    if (currentScene === 3 && mouseX <=390 && mouseX >= 275 && mouseY <= 55 && mouseY >= 35)
+    {
+       mouseDragged = function(){
+           if (mouseY >= 50 && mouseY <= 345){
+                fill(0, 0, 255);//blue
+                ellipse(mouseX, mouseY, 10, 10);
+           }
+            if (mouseY >350){
+               Solved();
+           }
+       };  
+    }
+    
+// making home/back button operational
+//maze 1
+    if (currentScene === 1 && mouseX <= 400 && mouseX >=325 && mouseY <= 35 && mouseY >= 0)
+    {
+        startScreen();
+    }
+
+//maze 2
+    if (currentScene === 2 && mouseX <= 400 && mouseX >=325 && mouseY <= 35 && mouseY >= 0)
+    {
+        startScreen();
+    }
+    
+//maze 3
+    if (currentScene === 3 && mouseX <= 400 && mouseX >=325 && mouseY <= 35 && mouseY >= 0)
+    {
+        startScreen();
+    }
+    
+};
+  </script>
+  
  </body>
  </html>
